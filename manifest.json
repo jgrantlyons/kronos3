@@ -1,0 +1,20 @@
+{
+  "name": "Kronos",
+  "short_name": "Kronos",
+  "manifest_version": 3,
+  "version": "1.0",
+  "description": "track time wasted looking at meme's",
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": ["storage", "tabs", "activeTab", "scripting"],
+  "host_permissions": ["<all_urls>"],
+  "icons": {
+    "16": "public/images/stopwatch_16.png",
+    "48": "public/images/stopwatch_48.png",
+    "128": "public/images/stopwatch_128.png"
+  },
+  "action": {
+    "default_popup": "popup.html"
+  }
+}
