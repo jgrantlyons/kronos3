@@ -5,7 +5,8 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>kronos</title>
-    <script async type=module src="src/popup.js"></script>
+    <script type=module src="src/popup.js"></script>
+    <link rel="stylesheet" type="text/css" href="public/css/popup.css" />
   </head>
   <body>
     <button type="button" id="close">x</button>
@@ -18,6 +19,7 @@
             <input type="text" id="userText" placeholder="kronos.com"/>
         </label>
         <button type="submit">append</button>
+        <p id="errorBody"></p>
       </form>
       <section>
         <ul id="urlList"></ul>
