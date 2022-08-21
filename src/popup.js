@@ -5,7 +5,9 @@ const appendButton = document.getElementById("appendButton");
 const closeButton = document.getElementById("close");
 const errorBody = document.getElementById("errorBody");
 const list = document.getElementById("urlList");
+
 let log = {}; // 'log' is the local equivalent to the 'library' object in chrome.storage
+
 closeButton.addEventListener("click", () => {
   window.close();
 });
