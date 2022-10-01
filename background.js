@@ -24,6 +24,7 @@ const initialize = async () => {
       activeTabs.push(tabData)
 
       if (!tabInfo.url.includes('chrome://' || '')) {
+        // TODO: if in library...
       injectForeground(tabInfo.id);
       }
     });
@@ -32,8 +33,17 @@ const initialize = async () => {
   });
 }
 
+// TODO: before reload, set activetabs where tabId matches this current tabid, and update the count and url
+
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.status === 'complete' && !tab.url.includes('chrome://')) {
+
+    chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
+      if (msg.text == "getId") {
+          sendResponse({tab: sender.tab.id});
+       }
+    });
+
     chrome.storage.sync.get('activeTabs', ({activeTabs}) => {
       let newTab = {
         [`${tabId}`]: {
@@ -41,6 +51,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
           count: 0
         }
       }
+      
       let updatedActiveTabs = activeTabs;
       updatedActiveTabs.push(newTab);
 
@@ -49,12 +60,6 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
       injectForeground(tabId);
     })
   };
-
-  // chrome.tabs.sendMessage(tabId, {greeting: "hello"}, (response) => {
-  //   console.log(response.farewell);
-  // });
-
-
 });
 
 initialize();

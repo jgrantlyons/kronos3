@@ -1,10 +1,4 @@
 /* global chrome */
-// chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-//   if (request.greeting === 'hello') {
-//     console.log('message recieved');
-//     sendResponse({farewell: 'goodbye'});}
-//   }
-// );
 
 if (typeof document.hidden !== "undefined") {
   hidden = "hidden";
@@ -19,6 +13,18 @@ if (typeof document.hidden !== "undefined") {
 var count = 0;
 var isActive = true;
 var documentTitle = document.title;
+var thisTabId = false;
+
+chrome.runtime.sendMessage({ text: "getId" }, tabId => {
+  thisTabId = tabId;
+});
+
+// var activeTabs = [];
+var activeTabsArray = {};
+chrome.storage.sync.get('activeTabs', ({activeTabs}) => {
+  activeTabsArray = {activeTabs};
+});
+
 
 const adjustTitle = ({count}) => {
   let titleString = count + ' ' + documentTitle;
@@ -49,20 +55,19 @@ const handleVisibilityChange = () => {
 }
 
 // Todo: before reload complete, update activeTabs
-// chrome.tabs.onUpdated.addListener(({tabId, changeInfo, tab}) => {
-//   console.log(tabId, changeInfo, tab);
-// })
+//run foreground script when url is updated
 
 chrome.storage.sync.get('library', ({library}) => {
   let href = window.location.href;
-  let flag = false;
+  let flagFirstIteration = false;
+  let activeTabs = activeTabsArray.activeTabs;
 
   for (const i of Object.entries(library)) {
     console.log(i);
-    if (href.includes(i[0])) flag = true;
+    if (href.includes(i[0])) flagFirstIteration = true;
   }
   
-  if (flag === true) {
+  if (flagFirstIteration === true) {
     startCount(count);
   }
 });
