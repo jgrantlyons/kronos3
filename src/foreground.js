@@ -13,13 +13,7 @@ if (typeof document.hidden !== "undefined") {
 var count = 0;
 var isActive = true;
 var documentTitle = document.title;
-var thisTabId = false;
 
-chrome.runtime.sendMessage({ text: "getId" }, tabId => {
-  thisTabId = tabId;
-});
-
-// var activeTabs = [];
 var activeTabsArray = {};
 chrome.storage.sync.get('activeTabs', ({activeTabs}) => {
   activeTabsArray = {activeTabs};
@@ -32,6 +26,15 @@ const adjustTitle = ({count}) => {
 }
 
 const startCount = (count) => {
+  chrome.storage.sync.get('activeTabs', ({activeTabs}) => {
+    chrome.runtime.sendMessage({request: "activeTab"}, ({response}) => {
+      var tabId = response.id;
+      var index = activeTabs.map((i) => Object.keys(i)).indexOf(tabId);
+
+      console.log(activeTabs[index]);
+    });
+  });
+
   setInterval(() => {
     if (isActive !== false) {
       adjustTitle({count})
@@ -54,7 +57,7 @@ const handleVisibilityChange = () => {
     : handleIsVisible();
 }
 
-// Todo: before reload complete, update activeTabs
+// Todo: update activeTabs and library
 //run foreground script when url is updated
 
 chrome.storage.sync.get('library', ({library}) => {
