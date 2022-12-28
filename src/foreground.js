@@ -10,70 +10,47 @@ if (typeof document.hidden !== "undefined") {
   hidden = "webkitHidden";
   visibilityChange = "webkitvisibilitychange";
 }
-var count = 0;
+
 var isActive = true;
-var documentTitle = document.title;
+var pageName = document.title;
+var countInterval;
+var timeOfVisibility;
+var timeOnPage = 0;
 
-var activeTabsArray = {};
-chrome.storage.sync.get('activeTabs', ({activeTabs}) => {
-  activeTabsArray = {activeTabs};
-});
+const handleInterval = ({isActive}) => {
+  if (isActive === true) {
+    var inception = new Date().getTime();
 
+    countInterval = setInterval(() => {
+      var timeStamp = new Date().getTime();
+      timeOfVisibility = Math.trunc((timeStamp - inception) / 1000);
 
-const adjustTitle = ({count}) => {
-  let titleString = count + ' ' + documentTitle;
-  document.title = titleString;
+      document.title = (timeOnPage + timeOfVisibility) + ' ' + pageName;
+    }, 1000);
+  }
+  if (isActive === false) {
+    timeOnPage = timeOnPage + timeOfVisibility;
+    clearInterval(countInterval);
+  }
 }
-
-const startCount = (count) => {
-  chrome.storage.sync.get('activeTabs', ({activeTabs}) => {
-    chrome.runtime.sendMessage({request: "activeTab"}, ({response}) => {
-      var tabId = response.id;
-      var index = activeTabs.map((i) => Object.keys(i)).indexOf(tabId);
-
-      console.log(activeTabs[index]);
-    });
-  });
-
-  setInterval(() => {
-    if (isActive !== false) {
-      adjustTitle({count})
-      count++;
-    };
-  }, 1000);
-};
 
 const handleIsVisible = () => {
   isActive = true;
+  handleInterval({isActive});
 };
 
 const handleIsHidden = () => {
   isActive = false;
+  handleInterval({isActive});
 };
 
 const handleVisibilityChange = () => {
   document[hidden]
     ? handleIsHidden()
     : handleIsVisible();
-}
+};
 
-// Todo: update activeTabs and library
-//run foreground script when url is updated
-
-chrome.storage.sync.get('library', ({library}) => {
-  let href = window.location.href;
-  let flagFirstIteration = false;
-  let activeTabs = activeTabsArray.activeTabs;
-
-  for (const i of Object.entries(library)) {
-    console.log(i);
-    if (href.includes(i[0])) flagFirstIteration = true;
-  }
-  
-  if (flagFirstIteration === true) {
-    startCount(count);
-  }
-});
+handleInterval({isActive});
 
 // Warn if the browser doesn't support addEventListener or the Page Visibility API
 if (typeof document.addEventListener === "undefined" || hidden === undefined) {
