@@ -15,7 +15,20 @@ var isActive = true;
 var pageName = document.title;
 var countInterval;
 var timeOfVisibility;
-var timeOnPage = 0;
+var timeOnPage;
+
+chrome.storage.sync.get('activeTabs', ({activeTabs}) => {
+  for (tab of activeTabs) {
+
+    if (tab.active === true) {
+      timeOnPage = tab.timeOnPage;
+    };
+  };
+
+  chrome.runtime.sendMessage({message: "updateActiveTabs"});
+});
+
+
 
 const handleInterval = ({isActive}) => {
   chrome.storage.sync.get('activeTabs', ({activeTabs}) => {
@@ -36,9 +49,7 @@ const handleInterval = ({isActive}) => {
         timeOfVisibility = Math.trunc((timeStamp - inception) / 1000);
         newActiveTabs[activeTabIndex].timeOnPage = timeOnPage + timeOfVisibility;
 
-        console.log(newActiveTabs);
         chrome.storage.sync.set({activeTabs: newActiveTabs});
-
         document.title = (timeOnPage + timeOfVisibility) + ' ' + pageName;
       }, 1000);
     };
