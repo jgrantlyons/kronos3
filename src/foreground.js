@@ -17,6 +17,18 @@ var countInterval;
 var timeOfVisibility;
 var timeOnPage = 0;
 
+var accumulativeTime = {};
+
+chrome.storage.sync.get('library', ({library}) => {
+  accumulativeTime.library = library;
+  for (const [key, value] of Object.entries(library)) {
+    if (window.location.host.includes(key)) {
+      accumulativeTime.key = key;
+      accumulativeTime.time = value;
+    };
+  };
+});
+
 const handleInterval = ({isActive}) => {
   chrome.storage.sync.get('activeTabs', ({activeTabs}) => {
     var activeTabIndex = -1;
@@ -34,10 +46,14 @@ const handleInterval = ({isActive}) => {
       countInterval = setInterval(() => {
         var timeStamp = new Date().getTime();
         timeOfVisibility = Math.trunc((timeStamp - inception) / 1000);
+        
         newActiveTabs[activeTabIndex].timeOnPage = timeOnPage + timeOfVisibility;
 
-        console.log(newActiveTabs);
         chrome.storage.sync.set({activeTabs: newActiveTabs});
+
+        accumulativeTime.library[accumulativeTime.key] = accumulativeTime.time + timeOnPage + timeOfVisibility;
+
+        chrome.storage.sync.set({library: accumulativeTime.library});
 
         document.title = (timeOnPage + timeOfVisibility) + ' ' + pageName;
       }, 1000);
