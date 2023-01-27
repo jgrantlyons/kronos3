@@ -17,7 +17,7 @@ function formatCountForPopup (count) {
   var countString;
 
   if (count < 60) {
-    countString = `${count}s`
+    countString = `1m`
   }
   else if (minutes > 59) {
     hours = Math.floor(minutes / 60, 10);
@@ -34,16 +34,31 @@ const updateList = (obj) => {
   for (const [key, value] of Object.entries(obj)) {
     let listElement = document.createElement("li");
     let rmBtn = document.createElement("button");
+    let listElementInnerElement = document.createElement("div");
+    listElementInnerElement.style.width = '100%';
+    listElementInnerElement.style.justifyContent = 'space-between';
+    listElementInnerElement.style.display = 'flex';
+    listElementInnerElement.style.flexDirection = 'row';
+
     rmBtn.innerText = "X";
     rmBtn.setAttribute("id", key);
     rmBtn.addEventListener("click", () => {
       removeLi(key);
     });
+
+    let urlNode = document.createElement('div');
+    let timeNode = document.createElement('div');
     let url = document.createTextNode(`${key}`);
     let time = document.createTextNode(`${formatCountForPopup(value)}`);
+
+    urlNode.appendChild(url);
+    timeNode.appendChild(time);
+
+    listElementInnerElement.appendChild(urlNode);
+    listElementInnerElement.appendChild(timeNode);
+
     listElement.appendChild(rmBtn);
-    listElement.appendChild(url);
-    listElement.appendChild(time);
+    listElement.appendChild(listElementInnerElement);
     list.appendChild(listElement);
   }
 };
