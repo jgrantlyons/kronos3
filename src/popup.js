@@ -11,6 +11,24 @@ closeButton.addEventListener("click", () => {
   window.close();
 });
 
+function formatCountForPopup (count) {
+  var minutes = Math.floor(count / 60);
+  var hours;
+  var countString;
+
+  if (count < 60) {
+    countString = `${count}s`
+  }
+  else if (minutes > 59) {
+    hours = Math.floor(minutes / 60, 10);
+    countString = `${hours}h ${minutes - (hours * 60)}m`;
+  } else {
+    countString = `${minutes}m`
+  }
+
+  return countString;
+}
+
 const updateList = (obj) => {
   list.innerHTML = "";
   for (const [key, value] of Object.entries(obj)) {
@@ -22,7 +40,7 @@ const updateList = (obj) => {
       removeLi(key);
     });
     let url = document.createTextNode(`${key}`);
-    let time = document.createTextNode(`${value}`);
+    let time = document.createTextNode(`${formatCountForPopup(value)}`);
     listElement.appendChild(rmBtn);
     listElement.appendChild(url);
     listElement.appendChild(time);

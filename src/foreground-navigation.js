@@ -11,6 +11,24 @@ if (typeof document.hidden !== "undefined") {
   visibilityChange = "webkitvisibilitychange";
 }
 
+function formatCountForTab (count) {
+  var minutes = Math.floor(count / 60);
+  var hours;
+  var countString;
+
+  if (count < 60) {
+    countString = `${count}s`
+  }
+  else if (minutes > 59) {
+    hours = Math.floor(minutes / 60, 10);
+    countString = `${hours}h`;
+  } else {
+    countString = `${minutes}m`
+  }
+
+  return countString;
+}
+
 const set = (obj, path, value) => {
   if (Object(obj) !== obj) return obj;
   if (!Array.isArray(path)) path = path.toString().match(/[^.[\]]+/g) || []; 
@@ -80,7 +98,7 @@ const handleInterval = ({isActive}) => {
 
         chrome.storage.sync.set({library: accumulativeTime.library});
 
-        document.title = (timeOnPage + timeOfVisibility) + ' ' + pageName;
+        document.title = formatCountForTab(timeOnPage + timeOfVisibility) + ' ' + pageName;
       }, 1000);
     };
     if (isActive === false) {

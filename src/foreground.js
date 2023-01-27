@@ -30,6 +30,24 @@ chrome.storage.sync.get('library', ({library}) => {
   };
 });
 
+function formatCountForTab (count) {
+  var minutes = Math.floor(count / 60);
+  var hours;
+  var countString;
+
+  if (count < 60) {
+    countString = `${count}sec`
+  }
+  else if (minutes > 59) {
+    hours = Math.floor(minutes / 60, 10);
+    countString = `${hours}hrs`;
+  } else {
+    countString = `${minutes}min`
+  }
+
+  return countString;
+}
+
 const handleInterval = ({isActive}) => {
   chrome.storage.sync.get('activeTabs', ({activeTabs}) => {
     var activeTabIndex = -1;
@@ -56,7 +74,8 @@ const handleInterval = ({isActive}) => {
 
         chrome.storage.sync.set({library: accumulativeTime.library});
 
-        document.title = (timeOnPage + timeOfVisibility) + ' ' + pageName;
+        document.title = formatCountForTab(timeOnPage + timeOfVisibility) + ' ' + pageName;
+        console.log(formatCountForTab(timeOnPage + timeOfVisibility));
       }, 1000);
     };
     if (isActive === false) {
