@@ -11,12 +11,28 @@ if (typeof document.hidden !== "undefined") {
   visibilityChange = "webkitvisibilitychange";
 }
 
+const set = (obj, path, value) => {
+  if (Object(obj) !== obj) return obj; // When obj is not an object
+  // If not yet an array, get the keys from the string-path
+  if (!Array.isArray(path)) path = path.toString().match(/[^.[\]]+/g) || []; 
+  path.slice(0,-1).reduce((a, c, i) => // Iterate all of them except the last one
+       Object(a[c]) === a[c] // Does the key exist and is its value an object?
+           // Yes: then follow that path
+           ? a[c] 
+           // No: create the key. Is the next key a potential array-index?
+           : a[c] = Math.abs(path[i+1])>>0 === +path[i+1] 
+                 ? [] // Yes: assign a new array object
+                 : {}, // No: assign a new plain object
+       obj)[path[path.length-1]] = value; // Finally assign the value to the last key
+  return obj; // Return the top-level object to allow chaining
+};
+
+var urlWasRemoved = false;
 var isActive = true;
 var pageName = document.title;
 var countInterval;
 var timeOfVisibility;
 var timeOnPage;
-
 var accumulativeTime = {};
 
 chrome.storage.sync.get('library', ({library}) => {
@@ -33,7 +49,8 @@ chrome.storage.sync.get('activeTabs', ({activeTabs}) => {
   for (tab of activeTabs) {
 
     if (tab.active === true) {
-      timeOnPage = tab.timeOnPage;
+      console.log(tab);
+      timeOnPage = tab.timeOnPage || 0;
     };
   };
 
@@ -45,6 +62,7 @@ chrome.storage.sync.get('activeTabs', ({activeTabs}) => {
 const handleInterval = ({isActive}) => {
   chrome.storage.sync.get('activeTabs', ({activeTabs}) => {
     var activeTabIndex = -1;
+    var newActiveTabs = activeTabs;
 
     for (tab of Object.values(activeTabs)) {
       if (tab.active === true) {
@@ -54,13 +72,15 @@ const handleInterval = ({isActive}) => {
 
     if (isActive === true) {
       var inception = new Date().getTime();
-      var newActiveTabs = activeTabs;
   
       countInterval = setInterval(() => {
         var timeStamp = new Date().getTime();
         timeOfVisibility = Math.trunc((timeStamp - inception) / 1000);
 
-        newActiveTabs[activeTabIndex].timeOnPage = timeOnPage + timeOfVisibility;
+        console.log(newActiveTabs[activeTabIndex]);
+        // newActiveTabs[activeTabIndex].timeOnPage = timeOnPage + timeOfVisibility;
+        set(newActiveTabs[activeTabIndex], 'timeOnPage', timeOnPage + timeOfVisibility);
+        console.log(newActiveTabs[activeTabIndex]);
 
         chrome.storage.sync.set({activeTabs: newActiveTabs});
 
@@ -78,14 +98,36 @@ const handleInterval = ({isActive}) => {
   });
 };
 
+chrome.runtime.onMessage.addListener(
+  function(request, sender, sendResponse) {
+
+    var message = request.message.split('-');
+
+    if (message.includes('urlRemoved')) {
+      var host = message[1];
+      var hostname = document.location.host;
+
+      if (hostname.includes(host)) {
+        clearInterval(countInterval);
+        document.title = pageName;
+        urlWasRemoved = true;
+      }
+    }
+  }
+)
+
 const handleIsVisible = () => {
     isActive = true;
-    handleInterval({isActive});
+    if (urlWasRemoved === false) {
+      handleInterval({isActive});
+    }
 };
 
 const handleIsHidden = () => {
   isActive = false;
-  handleInterval({isActive});
+  if (urlWasRemoved === false) {
+    handleInterval({isActive});
+  }
 };
 
 const handleVisibilityChange = () => {
@@ -94,7 +136,9 @@ const handleVisibilityChange = () => {
     : handleIsVisible();
 };
 
-handleInterval({isActive});
+if (urlWasRemoved === false) {
+  handleInterval({isActive});
+}
 
 // Warn if the browser doesn't support addEventListener or the Page Visibility API
 if (typeof document.addEventListener === "undefined" || hidden === undefined) {

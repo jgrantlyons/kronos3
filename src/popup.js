@@ -1,4 +1,3 @@
-// html elements
 const form = document.getElementById("form");
 const userText = document.getElementById("userText");
 const appendButton = document.getElementById("appendButton");
@@ -6,14 +5,13 @@ const closeButton = document.getElementById("close");
 const errorBody = document.getElementById("errorBody");
 const list = document.getElementById("urlList");
 
-let log = {}; // 'log' is the local equivalent to the 'library' object in chrome.storage
+let log = {};
 
 closeButton.addEventListener("click", () => {
   window.close();
 });
 
 const updateList = (obj) => {
-  // display log
   list.innerHTML = "";
   for (const [key, value] of Object.entries(obj)) {
     let listElement = document.createElement("li");
@@ -32,19 +30,18 @@ const updateList = (obj) => {
   }
 };
 
-//remove li
 const removeLi = (host) => {
   delete log[host];
   updateList(log);
   chrome.storage.sync.set({ library: log });
+
+  chrome.runtime.sendMessage({message: `urlRemoved-${host}`});
 };
 
-// adding new urls to the list
 const handleSubmit = (event) => {
   event.preventDefault();
   let userInput = userText.value;
   if (
-    // check syntax
     userInput.match(
       /(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g
     )
@@ -54,6 +51,8 @@ const handleSubmit = (event) => {
     updateList(log);
     chrome.storage.sync.set({ library: log });
     userText.value = "";
+
+    chrome.runtime.sendMessage({message: `newUrl-${Object.keys(newEntry)}`});
   } else {
     event.preventDefault();
   }

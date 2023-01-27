@@ -1,4 +1,5 @@
 /* global chrome */
+console.log('injected foreground');
 
 if (typeof document.hidden !== "undefined") {
   hidden = "hidden";
@@ -11,6 +12,7 @@ if (typeof document.hidden !== "undefined") {
   visibilityChange = "webkitvisibilitychange";
 }
 
+var urlWasRemoved = false;
 var isActive = true;
 var pageName = document.title;
 var countInterval;
@@ -46,8 +48,10 @@ const handleInterval = ({isActive}) => {
       countInterval = setInterval(() => {
         var timeStamp = new Date().getTime();
         timeOfVisibility = Math.trunc((timeStamp - inception) / 1000);
-        
+
         newActiveTabs[activeTabIndex].timeOnPage = timeOnPage + timeOfVisibility;
+        // console.log(newActiveTabs[activeTabIndex]);
+        // console.log(timeOnPage, timeOfVisibility);
 
         chrome.storage.sync.set({activeTabs: newActiveTabs});
 
@@ -65,14 +69,36 @@ const handleInterval = ({isActive}) => {
   });
 };
 
+chrome.runtime.onMessage.addListener(
+  function(request, sender, sendResponse) {
+
+    var message = request.message.split('-');
+
+    if (message.includes('urlRemoved')) {
+      var host = message[1];
+      var hostname = document.location.host;
+
+      if (hostname.includes(host)) {
+        clearInterval(countInterval);
+        document.title = pageName;
+        urlWasRemoved = true;
+      }
+    }
+  }
+)
+
 const handleIsVisible = () => {
     isActive = true;
-    handleInterval({isActive});
+    if (urlWasRemoved === false) {
+      handleInterval({isActive});
+    }
 };
 
 const handleIsHidden = () => {
   isActive = false;
-  handleInterval({isActive});
+  if (urlWasRemoved === false) {
+    handleInterval({isActive});
+  }
 };
 
 const handleVisibilityChange = () => {
@@ -81,7 +107,9 @@ const handleVisibilityChange = () => {
     : handleIsVisible();
 };
 
-handleInterval({isActive});
+if (urlWasRemoved === false) {
+  handleInterval({isActive});
+}
 
 // Warn if the browser doesn't support addEventListener or the Page Visibility API
 if (typeof document.addEventListener === "undefined" || hidden === undefined) {
