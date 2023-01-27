@@ -12,19 +12,16 @@ if (typeof document.hidden !== "undefined") {
 }
 
 const set = (obj, path, value) => {
-  if (Object(obj) !== obj) return obj; // When obj is not an object
-  // If not yet an array, get the keys from the string-path
+  if (Object(obj) !== obj) return obj;
   if (!Array.isArray(path)) path = path.toString().match(/[^.[\]]+/g) || []; 
-  path.slice(0,-1).reduce((a, c, i) => // Iterate all of them except the last one
-       Object(a[c]) === a[c] // Does the key exist and is its value an object?
-           // Yes: then follow that path
+  path.slice(0,-1).reduce((a, c, i) => 
+       Object(a[c]) === a[c]
            ? a[c] 
-           // No: create the key. Is the next key a potential array-index?
            : a[c] = Math.abs(path[i+1])>>0 === +path[i+1] 
-                 ? [] // Yes: assign a new array object
-                 : {}, // No: assign a new plain object
-       obj)[path[path.length-1]] = value; // Finally assign the value to the last key
-  return obj; // Return the top-level object to allow chaining
+                 ? []
+                 : {},
+       obj)[path[path.length-1]] = value;
+  return obj;
 };
 
 var urlWasRemoved = false;
@@ -47,9 +44,7 @@ chrome.storage.sync.get('library', ({library}) => {
 
 chrome.storage.sync.get('activeTabs', ({activeTabs}) => {
   for (tab of activeTabs) {
-
     if (tab.active === true) {
-      console.log(tab);
       timeOnPage = tab.timeOnPage || 0;
     };
   };
@@ -77,10 +72,7 @@ const handleInterval = ({isActive}) => {
         var timeStamp = new Date().getTime();
         timeOfVisibility = Math.trunc((timeStamp - inception) / 1000);
 
-        console.log(newActiveTabs[activeTabIndex]);
-        // newActiveTabs[activeTabIndex].timeOnPage = timeOnPage + timeOfVisibility;
         set(newActiveTabs[activeTabIndex], 'timeOnPage', timeOnPage + timeOfVisibility);
-        console.log(newActiveTabs[activeTabIndex]);
 
         chrome.storage.sync.set({activeTabs: newActiveTabs});
 

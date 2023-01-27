@@ -42,8 +42,6 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
               }
             }
 
-            console.log(pastTabUrl.host !== false);
-
             if (pastTabUrl.host !== false) {
               if (pastTabUrl.host === focusedTabUrl.host) {
                 tabUpdateIsNavigational = true;
@@ -51,12 +49,9 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
             }
               
             if (tabUpdateIsNavigational === true) {
-              console.log('navigational foreground injected')
               injectForegroundNavigation(tabId);
-              // chrome.storage.sync.set({activeTabs});
             }
             else {
-              console.log('regular foreground injected');
               injectForeground(tabId);
               chrome.storage.sync.set({activeTabs});
             }

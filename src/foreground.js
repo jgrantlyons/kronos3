@@ -1,5 +1,4 @@
 /* global chrome */
-console.log('injected foreground');
 
 if (typeof document.hidden !== "undefined") {
   hidden = "hidden";
@@ -50,8 +49,6 @@ const handleInterval = ({isActive}) => {
         timeOfVisibility = Math.trunc((timeStamp - inception) / 1000);
 
         newActiveTabs[activeTabIndex].timeOnPage = timeOnPage + timeOfVisibility;
-        // console.log(newActiveTabs[activeTabIndex]);
-        // console.log(timeOnPage, timeOfVisibility);
 
         chrome.storage.sync.set({activeTabs: newActiveTabs});
 
